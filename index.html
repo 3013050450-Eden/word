@@ -1,0 +1,759 @@
+#   
+<!DOCTYPE html>  
+<html lang="zh-CN">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">  
+    <title>智记单词 · 英译中卡片组</title>  
+    <style>  
+        * {  
+            box-sizing: border-box;  
+            -webkit-tap-highlight-color: transparent;  
+        }  
+  
+        body {  
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;  
+            background: linear-gradient(145deg, #f4f9ff 0%, #e9eff8 100%);  
+            margin: 0;  
+            min-height: 100vh;  
+            display: flex;  
+            align-items: center;  
+            justify-content: center;  
+            padding: 24px 16px;  
+        }  
+  
+        /* 主容器 */  
+        .app-container {  
+            max-width: 700px;  
+            width: 100%;  
+            background: rgba(255, 255, 255, 0.85);  
+            backdrop-filter: blur(3px);  
+            border-radius: 60px;  
+            box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.3);  
+            padding: 24px 24px 32px;  
+            transition: all 0.2s;  
+        }  
+  
+        h1 {  
+            font-size: 1.9rem;  
+            font-weight: 800;  
+            margin: 0 0 4px 0;  
+            background: linear-gradient(125deg, #1f3a4b, #2c6280);  
+            background-clip: text;  
+            -webkit-background-clip: text;  
+            color: transparent;  
+        }  
+        .sub {  
+            color: #597a9b;  
+            font-size: 0.85rem;  
+            margin-bottom: 24px;  
+            padding-left: 12px;  
+            border-left: 3px solid #3b82f6;  
+            font-weight: 500;  
+        }  
+  
+        /* 双模式输入栏 */  
+        .input-section {  
+            display: flex;  
+            gap: 10px;  
+            margin-bottom: 20px;  
+            flex-wrap: wrap;  
+        }  
+        .single-input {  
+            flex: 3;  
+            background: white;  
+            border-radius: 48px;  
+            padding: 4px 4px 4px 20px;  
+            display: flex;  
+            gap: 8px;  
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);  
+            border: 1px solid #e2edff;  
+        }  
+        .single-input:focus-within {  
+            border-color: #3b82f6;  
+            box-shadow: 0 4px 12px rgba(59,130,246,0.15);  
+        }  
+        #wordPairInput {  
+            flex: 1;  
+            border: none;  
+            padding: 12px 0;  
+            font-size: 0.9rem;  
+            background: transparent;  
+            outline: none;  
+            font-weight: 500;  
+        }  
+        .add-single-btn {  
+            background: #3b82f6;  
+            border: none;  
+            padding: 8px 18px;  
+            border-radius: 40px;  
+            color: white;  
+            font-weight: 600;  
+            font-size: 0.8rem;  
+            cursor: pointer;  
+            transition: 0.1s;  
+        }  
+        .batch-btn {  
+            background: #2c6e5c;  
+            border: none;  
+            padding: 8px 20px;  
+            border-radius: 40px;  
+            color: white;  
+            font-weight: 600;  
+            font-size: 0.8rem;  
+            cursor: pointer;  
+            display: flex;  
+            align-items: center;  
+            gap: 6px;  
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);  
+        }  
+        .batch-btn:active, .add-single-btn:active { transform: scale(0.96); }  
+  
+        /* 单词库徽章区 */  
+        .library-header {  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: baseline;  
+            margin: 12px 6px 8px 6px;  
+        }  
+        .badge-title {  
+            font-weight: 600;  
+            font-size: 0.8rem;  
+            background: #eaf1fb;  
+            padding: 4px 14px;  
+            border-radius: 30px;  
+            color: #2c5f8a;  
+        }  
+        .word-pool {  
+            background: #ffffffcc;  
+            border-radius: 36px;  
+            padding: 12px 16px;  
+            max-height: 170px;  
+            overflow-y: auto;  
+            margin-bottom: 20px;  
+            border: 1px solid rgba(255,255,255,0.8);  
+        }  
+        .pair-badge {  
+            background: #eef2ff;  
+            padding: 6px 14px;  
+            border-radius: 40px;  
+            display: inline-flex;  
+            align-items: center;  
+            gap: 12px;  
+            margin: 0 8px 8px 0;  
+            font-size: 0.85rem;  
+            flex-wrap: wrap;  
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);  
+        }  
+        .pair-en { font-weight: 800; color: #1e3a8a; }  
+        .pair-zh { color: #4b6a8b; background: #e6edf8; padding: 2px 10px; border-radius: 30px; font-size: 0.75rem; }  
+        .remove-pair {  
+            background: none;  
+            border: none;  
+            font-size: 1.1rem;  
+            cursor: pointer;  
+            color: #7e95b0;  
+            font-weight: bold;  
+            padding: 0 4px;  
+        }  
+        .remove-pair:active { color: #dc2626; transform: scale(1.2);}  
+        .empty-lib { color: #8ba3bc; text-align: center; padding: 10px; font-style: italic; }  
+  
+        /* 学习卡片区域 */  
+        .study-card {  
+            background: white;  
+            border-radius: 56px;  
+            margin: 12px 0 18px;  
+            box-shadow: 0 20px 35px -14px rgba(0, 0, 0, 0.2);  
+            padding: 32px 20px;  
+            text-align: center;  
+            min-height: 280px;  
+            display: flex;  
+            flex-direction: column;  
+            justify-content: center;  
+        }  
+        .card-word {  
+            font-size: 2.6rem;  
+            font-weight: 800;  
+            letter-spacing: -0.3px;  
+            color: #0f172a;  
+            word-break: break-word;  
+            margin-bottom: 18px;  
+        }  
+        .card-meaning {  
+            font-size: 1.35rem;  
+            font-weight: 500;  
+            background: #f0f9ff;  
+            display: inline-block;  
+            padding: 12px 24px;  
+            border-radius: 60px;  
+            color: #2c6e9e;  
+            margin-top: 8px;  
+        }  
+        .hidden-meaning { display: none; }  
+        .info-tip {  
+            font-size: 0.7rem;  
+            color: #6682a0;  
+            margin-top: 18px;  
+            background: #f1f5f9;  
+            padding: 6px 14px;  
+            border-radius: 50px;  
+            width: fit-content;  
+            align-self: center;  
+        }  
+        .empty-study-message {  
+            color: #8ea2bb;  
+            text-align: center;  
+            padding: 20px;  
+        }  
+  
+        /* 按钮区 */  
+        .action-row {  
+            display: flex;  
+            gap: 15px;  
+            margin: 12px 0 14px;  
+        }  
+        .btn {  
+            flex: 1;  
+            border: none;  
+            padding: 14px 8px;  
+            border-radius: 60px;  
+            font-weight: 700;  
+            font-size: 1rem;  
+            cursor: pointer;  
+            transition: 0.07s linear;  
+            box-shadow: 0 5px 12px rgba(0,0,0,0.1);  
+        }  
+        .btn-known { background: #10b981; color: white; }  
+        .btn-known:active { background: #059669; transform: scale(0.97);}  
+        .btn-unknown { background: #f97316; color: white; }  
+        .btn-unknown:active { background: #ea580c; transform: scale(0.97);}  
+        .btn-secondary {  
+            background: #475569;  
+            color: white;  
+            padding: 10px;  
+            font-size: 0.85rem;  
+            font-weight: 600;  
+        }  
+        .stats-line {  
+            display: flex;  
+            justify-content: space-between;  
+            margin-top: 8px;  
+            font-size: 0.75rem;  
+            color: #48657e;  
+        }  
+  
+        /* 模态框 批量导入 */  
+        .modal {  
+            display: none;  
+            position: fixed;  
+            top: 0; left: 0;  
+            width: 100%; height: 100%;  
+            background-color: rgba(0,0,0,0.5);  
+            backdrop-filter: blur(4px);  
+            align-items: center;  
+            justify-content: center;  
+            z-index: 1000;  
+        }  
+        .modal-content {  
+            background: white;  
+            max-width: 550px;  
+            width: 90%;  
+            border-radius: 48px;  
+            padding: 24px;  
+            box-shadow: 0 30px 40px rgba(0,0,0,0.3);  
+        }  
+        .modal-content h3 {  
+            margin-top: 0;  
+            font-size: 1.5rem;  
+            color: #1f3f57;  
+        }  
+        .modal textarea {  
+            width: 100%;  
+            height: 260px;  
+            padding: 16px;  
+            border-radius: 28px;  
+            border: 1px solid #cbdde9;  
+            font-family: monospace;  
+            font-size: 0.85rem;  
+            margin: 12px 0;  
+            resize: vertical;  
+        }  
+        .modal-actions {  
+            display: flex;  
+            gap: 12px;  
+            justify-content: flex-end;  
+        }  
+        .modal-actions button {  
+            padding: 10px 20px;  
+            border-radius: 40px;  
+            border: none;  
+            font-weight: 600;  
+            cursor: pointer;  
+        }  
+        .import-confirm {  
+            background: #2c6e5c;  
+            color: white;  
+        }  
+        .import-cancel {  
+            background: #e2e8f0;  
+        }  
+        footer {  
+            text-align: center;  
+            font-size: 0.65rem;  
+            color: #7c8ba0;  
+            margin-top: 18px;  
+        }  
+        @media (max-width: 550px) {  
+            .app-container { padding: 18px; }  
+            .card-word { font-size: 2rem; }  
+        }  
+    </style>  
+</head>  
+<body>  
+<div class="app-container">  
+    <h1>📖 单词卡组 · 批量CSV</h1>  
+    <div class="sub">支持单条输入 或 批量粘贴CSV（英文,中文）每行一组</div>  
+  
+    <!-- 双输入模式 -->  
+    <div class="input-section">  
+        <div class="single-input">  
+            <input type="text" id="wordPairInput" placeholder="单条格式：单词,释义  例：Apple,苹果" autocomplete="off">  
+            <button class="add-single-btn" id="addSingleBtn">➕ 添加</button>  
+        </div>  
+        <button class="batch-btn" id="openBatchBtn">📄 批量导入 (CSV风格)</button>  
+    </div>  
+  
+    <!-- 单词库展示 -->  
+    <div class="library-header">  
+        <span class="badge-title">📚 单词本 (未掌握)</span>  
+        <span style="font-size: 11px;">认识即永久移除</span>  
+    </div>  
+    <div class="word-pool" id="wordListContainer">  
+        <div class="empty-lib">✨ 暂无单词，请添加或批量导入</div>  
+    </div>  
+  
+    <!-- 学习卡片区 -->  
+    <div class="study-card" id="studyCard">  
+        <div id="cardEnglish" class="card-word">📘</div>  
+        <div id="cardMeaning" class="card-meaning hidden-meaning"></div>  
+        <div id="studyPlaceholder" class="empty-study-message" style="display: none;">🌟 点击「开始学习」或添加单词</div>  
+        <div class="info-tip" id="tipHint">⚡ 不认识会显示中文，再次点击则本轮重来</div>  
+    </div>  
+  
+    <div class="action-row">  
+        <button class="btn btn-known" id="knownBtn">✅ 认识</button>  
+        <button class="btn btn-unknown" id="unknownBtn">❓ 不认识</button>  
+    </div>  
+    <div style="display: flex; gap: 12px;">  
+        <button class="btn btn-secondary" id="startRoundBtn">🔄 开始学习 / 新的一轮</button>  
+        <button class="btn btn-secondary" id="resetRoundBtn">♻️ 重置本轮 (重新乱序)</button>  
+    </div>  
+    <div class="stats-line">  
+        <span id="roundStats">📌 未开始</span>  
+        <span id="totalStats">📦 总词条: 0</span>  
+    </div>  
+    <footer>✅ 认识 → 永久移出库，本轮消失 | ❓ 不认识 → 显示中文，再次点击则放回本轮末尾</footer>  
+</div>  
+  
+<!-- 批量导入模态框 -->  
+<div id="batchModal" class="modal">  
+    <div class="modal-content">  
+        <h3>📋 批量导入单词 (CSV风格)</h3>  
+        <p style="font-size: 0.8rem; color:#4b6a88;">每行格式：<strong>英文,中文</strong>   (逗号英文逗号)<br>示例：<br>Apple,苹果<br>Serendipity,意外发现珍奇事物的本领</p>  
+        <textarea id="batchTextarea" placeholder="Apple,苹果&#10;Serendipity,意外发现珍奇事物的本领&#10;Ephemeral,短暂的"></textarea>  
+        <div class="modal-actions">  
+            <button class="import-cancel" id="cancelBatchBtn">取消</button>  
+            <button class="import-confirm" id="confirmBatchBtn">📥 导入并合并</button>  
+        </div>  
+    </div>  
+</div>  
+  
+<script>  
+    // ---------- 核心数据结构 ----------  
+    let masterList = [];          // 永久库 { id, word, meaning }  
+    let nextId = 1;  
+    let currentRoundQueue = [];   // 当前轮次队列 (对象数组)  
+    let currentCard = null;       // 当前卡片对象  
+    let isShowingMeaning = false;  // 是否已显示中文释义  
+  
+    // DOM 元素  
+    const wordPairInput = document.getElementById('wordPairInput');  
+    const addSingleBtn = document.getElementById('addSingleBtn');  
+    const openBatchBtn = document.getElementById('openBatchBtn');  
+    const batchModal = document.getElementById('batchModal');  
+    const batchTextarea = document.getElementById('batchTextarea');  
+    const cancelBatchBtn = document.getElementById('cancelBatchBtn');  
+    const confirmBatchBtn = document.getElementById('confirmBatchBtn');  
+    const wordListContainer = document.getElementById('wordListContainer');  
+    const cardEnglish = document.getElementById('cardEnglish');  
+    const cardMeaning = document.getElementById('cardMeaning');  
+    const studyPlaceholder = document.getElementById('studyPlaceholder');  
+    const knownBtn = document.getElementById('knownBtn');  
+    const unknownBtn = document.getElementById('unknownBtn');  
+    const startRoundBtn = document.getElementById('startRoundBtn');  
+    const resetRoundBtn = document.getElementById('resetRoundBtn');  
+    const roundStatsSpan = document.getElementById('roundStats');  
+    const totalStatsSpan = document.getElementById('totalStats');  
+    const tipHintSpan = document.getElementById('tipHint');  
+  
+    // ---------- 辅助函数 ----------  
+    function escapeHtml(str) {  
+        if (!str) return '';  
+        return str.replace(/[&<>]/g, function(m) {  
+            if (m === '&') return '&amp;';  
+            if (m === '<') return '&lt;';  
+            if (m === '>') return '&gt;';  
+            return m;  
+        });  
+    }  
+  
+    // 更新单词库UI  
+    function updateLibraryUI() {  
+        if (masterList.length === 0) {  
+            wordListContainer.innerHTML = '<div class="empty-lib">📭 单词库为空，添加单词或批量导入</div>';  
+            totalStatsSpan.innerText = `📦 总词条: 0`;  
+            return;  
+        }  
+        const fragment = document.createDocumentFragment();  
+        masterList.forEach(item => {  
+            const badge = document.createElement('div');  
+            badge.className = 'pair-badge';  
+            badge.innerHTML = `  
+                <span class="pair-en">${escapeHtml(item.word)}</span>  
+                <span class="pair-zh">${escapeHtml(item.meaning)}</span>  
+                <button class="remove-pair" data-id="${item.id}" title="永久删除">✕</button>  
+            `;  
+            fragment.appendChild(badge);  
+        });  
+        wordListContainer.innerHTML = '';  
+        wordListContainer.appendChild(fragment);  
+        totalStatsSpan.innerText = `📦 总词条: ${masterList.length}`;  
+        // 绑定删除事件  
+        document.querySelectorAll('.remove-pair').forEach(btn => {  
+            btn.addEventListener('click', (e) => {  
+                e.stopPropagation();  
+                const id = parseInt(btn.getAttribute('data-id'));  
+                removeWordPermanentlyById(id);  
+            });  
+        });  
+    }  
+  
+    // 永久删除单词组  
+    function removeWordPermanentlyById(id) {  
+        const index = masterList.findIndex(item => item.id === id);  
+        if (index === -1) return;  
+        masterList.splice(index, 1);  
+        // 从当前轮次队列中删除  
+        currentRoundQueue = currentRoundQueue.filter(item => item.id !== id);  
+        if (currentCard && currentCard.id === id) {  
+            loadNextCardFromQueue();  
+        } else {  
+            updateStudyUI();  
+        }  
+        updateLibraryUI();  
+        updateRoundStats();  
+        autoHandleEmptyQueue();  
+    }  
+  
+    // 从队列加载下一个单词 (重置中文隐藏)  
+    function loadNextCardFromQueue() {  
+        isShowingMeaning = false;  
+        if (currentRoundQueue.length === 0) {  
+            currentCard = null;  
+            displayEmptyStudyMessage();  
+            updateRoundStats();  
+            return;  
+        }  
+        const next = currentRoundQueue.shift();  
+        currentCard = next;  
+        cardEnglish.innerText = currentCard.word;  
+        cardMeaning.innerText = currentCard.meaning;  
+        cardMeaning.classList.add('hidden-meaning');  
+        studyPlaceholder.style.display = 'none';  
+        cardEnglish.style.display = 'block';  
+        tipHintSpan.innerText = '⚡ 不认识会显示中文，再次点击则放回本轮末尾';  
+        updateRoundStats();  
+    }  
+  
+    function displayEmptyStudyMessage() {  
+        currentCard = null;  
+        cardEnglish.innerText = '📘';  
+        cardMeaning.classList.add('hidden-meaning');  
+        studyPlaceholder.style.display = 'block';  
+        studyPlaceholder.innerText = masterList.length === 0 ? '✨ 暂无单词，请添加或批量导入' : '🎉 本轮完成！点“开始学习”继续挑战';  
+        tipHintSpan.innerText = masterList.length === 0 ? '添加单词即可开始' : '本轮复习结束，点击开始学习新的一轮';  
+        updateRoundStats();  
+    }  
+  
+    function updateStudyUI() {  
+        if (currentCard) {  
+            cardEnglish.innerText = currentCard.word;  
+            if (isShowingMeaning) {  
+                cardMeaning.classList.remove('hidden-meaning');  
+                cardMeaning.innerText = currentCard.meaning;  
+            } else {  
+                cardMeaning.classList.add('hidden-meaning');  
+            }  
+            studyPlaceholder.style.display = 'none';  
+            cardEnglish.style.display = 'block';  
+        } else {  
+            displayEmptyStudyMessage();  
+        }  
+        updateRoundStats();  
+    }  
+  
+    function updateRoundStats() {  
+        const queueLen = currentRoundQueue.length;  
+        if (currentCard) {  
+            roundStatsSpan.innerText = `🎴 本轮剩余: ${queueLen}  · 学习中`;  
+        } else {  
+            if (masterList.length > 0 && queueLen === 0) roundStatsSpan.innerText = `🏁 本轮结束 · 点击「开始学习」`;  
+            else if (masterList.length === 0) roundStatsSpan.innerText = `📭 无单词库`;  
+            else roundStatsSpan.innerText = `⏳ 未开始 · 点击开始学习`;  
+        }  
+    }  
+  
+    function autoHandleEmptyQueue() {  
+        if (currentRoundQueue.length === 0 && masterList.length > 0 && currentCard === null) {  
+            displayEmptyStudyMessage();  
+        } else if (masterList.length === 0) {  
+            displayEmptyStudyMessage();  
+        }  
+    }  
+  
+    // 基于masterList乱序生成队列  
+    function buildShuffledQueue() {  
+        const shuffled = [...masterList];  
+        for (let i = shuffled.length - 1; i > 0; i--) {  
+            const j = Math.floor(Math.random() * (i + 1));  
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];  
+        }  
+        return shuffled;  
+    }  
+  
+    // 开始全新一轮  
+    function startNewRound() {  
+        if (masterList.length === 0) {  
+            alert('请先添加单词（单条或批量导入）');  
+            displayEmptyStudyMessage();  
+            return;  
+        }  
+        currentRoundQueue = buildShuffledQueue();  
+        isShowingMeaning = false;  
+        if (currentRoundQueue.length > 0) {  
+            currentCard = currentRoundQueue.shift();  
+            cardEnglish.innerText = currentCard.word;  
+            cardMeaning.innerText = currentCard.meaning;  
+            cardMeaning.classList.add('hidden-meaning');  
+            studyPlaceholder.style.display = 'none';  
+        } else {  
+            currentCard = null;  
+            displayEmptyStudyMessage();  
+        }  
+        updateRoundStats();  
+        updateLibraryUI();  
+        tipHintSpan.innerText = '⚡ 不认识会显示中文，再次点击则放回本轮末尾';  
+    }  
+  
+    // 重置本轮 (重新乱序当前库)  
+    function resetCurrentRound() {  
+        if (masterList.length === 0) {  
+            startNewRound();  
+            return;  
+        }  
+        currentRoundQueue = buildShuffledQueue();  
+        isShowingMeaning = false;  
+        if (currentRoundQueue.length > 0) {  
+            currentCard = currentRoundQueue.shift();  
+            cardEnglish.innerText = currentCard.word;  
+            cardMeaning.innerText = currentCard.meaning;  
+            cardMeaning.classList.add('hidden-meaning');  
+            studyPlaceholder.style.display = 'none';  
+        } else {  
+            currentCard = null;  
+            displayEmptyStudyMessage();  
+        }  
+        updateRoundStats();  
+        updateLibraryUI();  
+    }  
+  
+    // 认识逻辑  
+    function handleKnown() {  
+        if (!currentCard) {  
+            if (masterList.length > 0 && currentRoundQueue.length === 0) alert('本轮已完成，请点击「开始学习」');  
+            else if (masterList.length === 0) alert('单词库为空，请先添加单词');  
+            return;  
+        }  
+        removeWordPermanentlyById(currentCard.id);  
+    }  
+  
+    // 不认识逻辑: 未显示中文 -> 显示中文； 已显示中文 -> 放回队列末尾，加载下一个  
+    function handleUnknown() {  
+        if (!currentCard) {  
+            if (masterList.length === 0) alert('没有单词可学习');  
+            else if (currentRoundQueue.length === 0 && !currentCard) alert('本轮已完成，点击开始学习');  
+            return;  
+        }  
+        if (!isShowingMeaning) {  
+            // 第一次点不认识：显示中文意思  
+            isShowingMeaning = true;  
+            cardMeaning.classList.remove('hidden-meaning');  
+            cardMeaning.innerText = currentCard.meaning;  
+            tipHintSpan.innerText = '再次点击「不认识」将单词放回本轮队列末尾，稍后再出现';  
+        } else {  
+            // 已显示中文，确认不认识 -> 放回队尾，加载下一个  
+            if (currentCard) {  
+                // 将当前单词加入队列末尾 (深拷贝一份)  
+                currentRoundQueue.push({ ...currentCard, id: currentCard.id, word: currentCard.word, meaning: currentCard.meaning });  
+            }  
+            // 加载下一个单词  
+            if (currentRoundQueue.length > 0) {  
+                const nextCard = currentRoundQueue.shift();  
+                currentCard = nextCard;  
+                isShowingMeaning = false;  
+                cardEnglish.innerText = currentCard.word;  
+                cardMeaning.classList.add('hidden-meaning');  
+                cardMeaning.innerText = currentCard.meaning;  
+                studyPlaceholder.style.display = 'none';  
+                tipHintSpan.innerText = '⚡ 不认识单词已放回队尾，继续学习下一个';  
+            } else {  
+                // 极端情况：队列原本为空，只有当前单词且被push后又没别的了  
+                currentCard = null;  
+                displayEmptyStudyMessage();  
+            }  
+            updateRoundStats();  
+            updateStudyUI();  
+        }  
+        updateRoundStats();  
+    }  
+  
+    // ---------- 添加单词核心 (单条 & 批量) ----------  
+    function addSingleWordFromInput() {  
+        const raw = wordPairInput.value.trim();  
+        if (raw === "") {  
+            alert("请输入单词和释义，格式：英文,中文  例如：Apple,苹果");  
+            return;  
+        }  
+        const { word, meaning, valid } = parseCSVLine(raw);  
+        if (!valid) {  
+            alert("格式错误，请使用 英文,中文 (英文逗号分隔)");  
+            return;  
+        }  
+        if (masterList.some(item => item.word.toLowerCase() === word.toLowerCase())) {  
+            alert(`单词“${word}”已存在词库，不可重复添加`);  
+            return;  
+        }  
+        addWordToMaster(word, meaning);  
+        wordPairInput.value = "";  
+        wordPairInput.focus();  
+    }  
+  
+    // 解析CSV行：支持 "Apple,苹果" 或带前后空格  
+    function parseCSVLine(line) {  
+        let trimmed = line.trim();  
+        if (trimmed === "") return { valid: false };  
+        // 寻找第一个逗号分隔  
+        const commaIndex = trimmed.indexOf(',');  
+        if (commaIndex === -1) return { valid: false };  
+        const word = trimmed.substring(0, commaIndex).trim();  
+        const meaning = trimmed.substring(commaIndex + 1).trim();  
+        if (word === "" || meaning === "") return { valid: false };  
+        return { word, meaning, valid: true };  
+    }  
+  
+    function addWordToMaster(word, meaning) {  
+        const newItem = { id: nextId++, word, meaning };  
+        masterList.push(newItem);  
+        // 动态加入当前学习流程：如果当前队列非空或有卡片存在，随机插入队列（让新词出现在本轮）  
+        if ((currentRoundQueue.length > 0 || currentCard) && masterList.length > 0) {  
+            const insertIndex = Math.floor(Math.random() * (currentRoundQueue.length + 1));  
+            currentRoundQueue.splice(insertIndex, 0, newItem);  
+        } else if (masterList.length > 0 && currentRoundQueue.length === 0 && !currentCard) {  
+            // 未开始学习则自动开启一轮  
+            startNewRound();  
+        } else {  
+            updateRoundStats();  
+        }  
+        updateLibraryUI();  
+        if (!currentCard && currentRoundQueue.length > 0) loadNextCardFromQueue();  
+        else updateStudyUI();  
+    }  
+  
+    // 批量导入：解析多行文本 (csv风格)  
+    function importBatchCSV(content) {  
+        const lines = content.split(/\r?\n/);  
+        let addedCount = 0;  
+        let skippedCount = 0;  
+        for (let line of lines) {  
+            if (line.trim() === "") continue;  
+            const { word, meaning, valid } = parseCSVLine(line);  
+            if (!valid) {  
+                skippedCount++;  
+                continue;  
+            }  
+            if (masterList.some(item => item.word.toLowerCase() === word.toLowerCase())) {  
+                skippedCount++;  
+                continue;  
+            }  
+            addWordToMaster(word, meaning);  
+            addedCount++;  
+        }  
+        alert(`✅ 导入完成！成功添加 ${addedCount} 组单词，跳过 ${skippedCount} 行(重复或格式错误)`);  
+        updateLibraryUI();  
+        if (masterList.length > 0 && !currentCard && currentRoundQueue.length === 0) {  
+            startNewRound();  
+        } else {  
+            if (!currentCard && currentRoundQueue.length > 0) loadNextCardFromQueue();  
+            updateStudyUI();  
+        }  
+    }  
+  
+    // 模态框逻辑  
+    function openModal() {  
+        batchModal.style.display = 'flex';  
+        batchTextarea.value = "";  
+    }  
+    function closeModal() {  
+        batchModal.style.display = 'none';  
+    }  
+    function confirmBatch() {  
+        const rawText = batchTextarea.value;  
+        if (rawText.trim() === "") {  
+            alert("请在文本框内粘贴单词列表 (每行 英文,中文)");  
+            return;  
+        }  
+        importBatchCSV(rawText);  
+        closeModal();  
+    }  
+  
+    // ---------- 初始化 + 示例数据 ----------  
+    function initDemo() {  
+        masterList = [];  
+        nextId = 1;  
+        const demoWords = [  
+            { id: nextId++, word: "Serendipity", meaning: "意外发现珍奇事物的本领" },  
+            { id: nextId++, word: "Ephemeral", meaning: "短暂的，转瞬即逝" },  
+            { id: nextId++, word: "Mellifluous", meaning: "悦耳动听的" },  
+            { id: nextId++, word: "Resilient", meaning: "有韧性的" }  
+        ];  
+        masterList.push(...demoWords);  
+        updateLibraryUI();  
+        startNewRound();  
+    }  
+    initDemo();  
+  
+    // 事件绑定  
+    addSingleBtn.addEventListener('click', addSingleWordFromInput);  
+    openBatchBtn.addEventListener('click', openModal);  
+    cancelBatchBtn.addEventListener('click', closeModal);  
+    confirmBatchBtn.addEventListener('click', confirmBatch);  
+    knownBtn.addEventListener('click', handleKnown);  
+    unknownBtn.addEventListener('click', handleUnknown);  
+    startRoundBtn.addEventListener('click', startNewRound);  
+    resetRoundBtn.addEventListener('click', resetCurrentRound);  
+    window.addEventListener('click', (e) => { if (e.target === batchModal) closeModal(); });  
+    wordPairInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addSingleWordFromInput(); });  
+</script>  
+</body>  
+</html>  
